@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t marlian/multi-docker -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true marlian/multi-docker npm test
+
+after_success:
+  - docker build -t marlian/multi-client ./client
+  - docker build -t marlian/multi-nginx ./nginx
+  - docker build -t marlian/multi-server ./server
+  - docker build -t marlian/multi-woker ./worker
+
+  #Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Take images and push them to docker hub
+  - docker push marlian/multi-client
+  - docker push marlian/multi-nginx 
+  - docker push marlian/multi-server
+  - docker push marlian/multi-woker 
